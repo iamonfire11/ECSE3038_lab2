@@ -3,65 +3,57 @@ import datetime
 
 app = Flask(__name__)
 
-DATABASE = []
 tank = []
-tankid = 0
+id = 0
 global user_object
-user_object = ("","","","")
+user_object = {}
+global data_object 
+data_object = {}
 
 #CREATE
 @app.route("/profile", methods=["POST"])
 def post():
-    user = request.json["username"]
-    fav_colour = request.json["favcolour"]
-    r = request.json["role"]
-    time = datetime.datetime.now()
     user_object = {
-    "last_updated":time,
-    "username": user,
-    "favcolour": fav_colour,
-    "role": r
+    "last_updated":datetime.datetime.now(),
+    "username": request.json["username"],
+    "role": request.json["role"],
+    "favcolour": request.json["favcolour"]
      }
-    DATABASE.append(user_object)
     return user_object
 
 #READ
 @app.route("/profile", methods = ["GET"])
 def getuser():
-    return jsonify(DATABASE)
+    return user_object
 
 #UPDATE
 @app.route("/profile", methods = ["PATCH"])
 def patchuser():
     if "username" in request.json:
-        user["username"] = request.json["username"]
+        user_object["username"] = request.json["username"]
         last_updated = datetime.datetime.now()
     if "fav_color" in request.json:
-        fav_colour["favcolour"] = request.json["favcolour"]
+        user_object["favcolour"] = request.json["favcolour"]
         last_updated = datetime.datetime.now()
     if "role" in request.json:
-        r["role"] = request.json["role"]
+        user_object["role"] = request.json["role"]
         last_updated = datetime.datetime.now()        
-    return jsonify(DATABASE)
+    return user_object
 
 #CREATE
 @app.route("/data", methods=["POST"])
 def post_d():
-    location = request.json["location"]
-    full = request.json["full"]
-    lat = request.json["lat"]
-    long = request.json["long"]
-    global tankid
-    tankid +=1
+    global id
+    id+=1
     data_object = {
-    "tank_id":tankid,
-    "location":location,
-    "full":full,
-    "lat":lat,
-    "long":long
-     }
+    "location": request.json["location"],
+    "full": request.json["full"],
+    "lat": request.json["lat"],
+    "long": request.json["long"],
+    "tank_id":id
+    }
     tank.append(data_object)
-    return data_object
+    return jsonify(data_object)
 
 #READ
 @app.route("/data",methods = ["GET"])
@@ -70,29 +62,32 @@ def get_data():
 
 #UPDATE
 @app.route("/data/<int:id>", methods = ["PATCH"])
-def patch_data(tankid):
-    for location in tank:
-        if location["tank_id"]== tankid:
-            location["location"] = request.json("location")
-    for full in tank:
-        if full["tank_id"]==tankid:
-            full["full"] = request.json("full")
-    for lat in tank:
-        if lat["tank_id"]==tankid:
-            lat["lat"] = request.json("lat")
-    for long in tank:
-        if long["tank_id"]==tankid:
-            long["long"] = request.json("long")
-
+def patch_data(id):
+    for i in tank:
+        if i["tank_id"]==id:
+            if "location" in request.json:
+                i["location"] = request.json["location"]
+                last_updated = datetime.datetime.now()
+            if "full" in request.json:
+                i["full"] = request.json["full"]
+                data_updated = datetime.datetime.now()
+            if "lat" in request.json:
+                i["lat"] = request.json["lat"]
+                last_updated = datetime.datetime.now() 
+            if "long" in request.json:
+                i["long"] = request.json["long"]
+                last_updated = datetime.datetime.now()           
     return jsonify(tank)
 
 #DELETE 
 @app.route("/data/<int:id>", methods = ["DELETE"])
 def delete(id):
     for location in tank:
-        if location["tank_id"] == tankid:
+        if location["tank_id"] == id:
             tank.remove(location)
-    return f"Success"
+    return {
+        "success":True
+    }
 
 
 if __name__ == "__main__":
